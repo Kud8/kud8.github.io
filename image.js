@@ -12,14 +12,11 @@ let isAtCenter = (x, y) =>  {
     let x_diff = (x-center.x)*(x-center.x);
     let y_diff = (y-center.y)*(y-center.y);
     let tmp = Math.random() * atCenterConst / (x_diff*x_diff + y_diff*y_diff);
-    if (x%50 == 0 && y%50 == 0) {
-        console.log(x, y, tmp);
-    }
     return x_diff + y_diff <= R*R || tmp >= 150;
 };
 
 let drawBlindSpot = (context) => {
-    let blindSpotRadius = Math.min(height, width) / 22;
+    let blindSpotRadius = Math.min(height, width) / 11;
     let blindSpotCenter = {
         x: 7/8 * width,
         y: center.y - Math.tan(15 * Math.PI / 180) * (3/8)*width
@@ -56,7 +53,7 @@ let drawBinarizedImage = (result, imageData) => {
 };
 
 let inFirstBound = (x, y) => {
-    let R_square_up = height*height/5;
+    let R_square_up = height*height/4.5;
     let R_square_bottom = height*height/25;
     let x_diff = (x-center.x)*(x-center.x);
     let y_diff = (y-center.y)*(y-center.y);
@@ -64,7 +61,7 @@ let inFirstBound = (x, y) => {
 };
 
 let inSecondBound = (x, y) => {
-    let R_square = height*height/5;
+    let R_square = height*height/4.5;
     let x_diff = (x-center.x)*(x-center.x);
     let y_diff = (y-center.y)*(y-center.y);
     return x_diff + y_diff >= R_square;
