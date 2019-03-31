@@ -153,4 +153,4 @@ let imageLoaded = (ev) => {
 im = new Image();
 im.onload = imageLoaded;
 //im.src = "facebook.png";
-im.src = 'mipt2.jpg';
+im.src = 'img/mipt2.jpg';
