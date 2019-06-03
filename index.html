@@ -6,26 +6,34 @@
 	<link rel="stylesheet" type="text/css" href="index.css">
 </head>
 <body>
+	<script>
+		var getContext = HTMLCanvasElement.prototype.getContext;
+		HTMLCanvasElement.prototype.getContext = function(){
+			if( arguments[ 1 ] ) arguments[ 1 ].preserveDrawingBuffer = true;
+			var context = getContext.apply( this, arguments );
+			return context;
+		}
+	</script>
 	<script src="libs/three.min.js"></script>
 	<script src="libs/OrbitControls.js"></script>
 
 	<script id="vertex_shader" type="x-shader/x-vertex">
-	varying vec3 vNormal;
-	void main() {
-		vNormal = normal;
-		gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-	}
+		varying vec3 vNormal;
+		void main() {
+			vNormal = normal;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		}
 	</script>
 
 	<script id="fragment_shader" type="x-shader/x-fragment">
-	uniform sampler2D texture;
-	varying vec3 vNormal;
-	void main() {
-		vec2 uv = normalize( vNormal ).xy * 0.5 + 0.5;
-		vec3 color = texture2D( texture, uv ).rgb;
-		if ( vNormal.z < - 0.85 ) color = vec3( 0.777, 0.74, 0.74 ); // back of eye
-		gl_FragColor = vec4( color, 1.0 );
-	}
+		uniform sampler2D texture;
+		varying vec3 vNormal;
+		void main() {
+			vec2 uv = normalize( vNormal ).xy * 0.5 + 0.5;
+			vec3 color = texture2D( texture, uv ).rgb;
+			if ( vNormal.z < - 0.85 ) color = vec3( 0.777, 0.74, 0.74 ); // back of eye
+			gl_FragColor = vec4( color, 1.0 );
+		}
 	</script>
 
 	<script src="index.js"></script>

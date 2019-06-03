@@ -87,7 +87,7 @@ let drawUnfocusedBounds = (result, imageData) => {
             let size0 = 2;
             let size1 = 3;
             let size2 = 4;
-            if (x % size1 == (size1-1) && y % size1 == (size1-1) && inFirstBound(x, y)) {
+            if (x % size1 === (size1-1) && y % size1 === (size1-1) && inFirstBound(x, y)) {
                 for (let k = 0; k < size1; ++k) {
                     for (let i = 0; i < size1; ++i) {
                         result.data[pos - k*width*4 - 4*i - 4] = gray;
@@ -96,7 +96,7 @@ let drawUnfocusedBounds = (result, imageData) => {
                         result.data[pos - k*width*4 - 4*i - 1] = a;
                     }
                 }
-            } else if (x % size2 == (size2-1) && y % size2 == (size2-1) && inSecondBound(x, y)) {
+            } else if (x % size2 === (size2-1) && y % size2 === (size2-1) && inSecondBound(x, y)) {
                 for (let k = 0; k < size2; ++k) {
                     for (let i = 0; i < size2; ++i) {
                         result.data[pos - k*width*4 - 4*i - 4] = gray;
@@ -105,7 +105,7 @@ let drawUnfocusedBounds = (result, imageData) => {
                         result.data[pos - k*width*4 - 4*i - 1] = a;
                     }
                 }
-            } else if (x % size1 == (size1-1) && y % size1 == (size1-1) && inZeroBound(x, y)) {
+            } else if (x % size1 === (size1-1) && y % size1 === (size1-1) && inZeroBound(x, y)) {
                 for (let k = 0; k < size0; ++k) {
                     for (let i = 0; i < size0; ++i) {
                         result.data[pos - k*width*4 - 4*i - 4] = gray;
@@ -152,5 +152,4 @@ let imageLoaded = (ev) => {
 
 im = new Image();
 im.onload = imageLoaded;
-//im.src = "facebook.png";
 im.src = 'img/mipt2.jpg';
