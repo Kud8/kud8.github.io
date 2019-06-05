@@ -8,8 +8,11 @@ function isPowerOf2(value) {
 }
 
 let camera, scene, renderer, mesh, texture;
-let image, width, height, pixelsLength;
+let image, pixelsLength;
 let canvas, gl;
+
+const width = 512;
+const height = 512;
 
 const lambda = 1;
 const L = 50;
@@ -69,19 +72,45 @@ const updateH = (newI, newJ) => {
     }
 };
 
+let waitImageUpload = true;
+
+function loadTexture(url) {
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    const image = new Image();
+    image.onload = function() {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+            gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        }
+        waitImageUpload = false;
+    };
+
+    image.crossOrigin = 'anonymous';
+    image.src = url;
+
+    return texture;
+}
+
 const init = () => {
     const imageOld = document.createElement('img');
     imageOld.src = 'http://image.sendsay.ru/image/x_1480704971639731/test1/mipt2.jpg';
     document.body.appendChild(imageOld);
 
     renderer = new THREE.WebGLRenderer();
-    renderer.setSize(512, 512);
+    renderer.setSize(width, height);
     canvas = renderer.domElement;
     document.body.appendChild(canvas);
     gl = canvas.getContext("webgl");
 
-    width = gl.drawingBufferWidth;
-    height = gl.drawingBufferHeight;
     pixelsLength = width * height * 4;
 
     scene = new THREE.Scene();
@@ -95,12 +124,7 @@ const init = () => {
     controls.minDistance = 75;
     controls.maxDistance = 200;
 
-    image = document.createElement('img');
-
-    texture = new THREE.Texture(image);
-    image.addEventListener('load', function () {
-        texture.needsUpdate = true;
-    });
+    texture = loadTexture('http://image.sendsay.ru/image/x_1480704971639731/test1/canvas.png');
 
     var uniforms = {
         "texture": {type: "t", value: texture}
@@ -153,13 +177,57 @@ const updateCameraPosition = (id) => {
     controls.maxDistance = 200;
 };
 
-let count = 0;
+let count = 1;
 let oldPixels;
 
 const arePixelsDifferent = (r0, g0, b0, r1, g1, b1) => {
-    return Math.abs(r0 - r1) > 5
-        && Math.abs(g0 - g1) > 5
-        && Math.abs(b0 - b1) > 5;
+    const diff = 5;
+
+    return Math.abs(r0 - r1) > 3 * diff
+        && Math.abs(g0 - g1) > 5 * diff
+        && Math.abs(b0 - b1) > 1 * diff;
+};
+
+
+const updateImagePixeles = () => {
+    const pixels = new Uint8Array(pixelsLength);
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+    if (oldPixels) {
+        const newPixels = new Uint8Array(pixels);
+
+        for (let i = 3; i < pixelsLength; i += 4) {
+            if (arePixelsDifferent(
+                pixels[i - 3], pixels[i - 2], pixels[i - 1],
+                oldPixels[i - 3], oldPixels[i - 2], oldPixels[i - 1]
+            )) {
+                newPixels[i - 3] = pixels[i - 3];
+                newPixels[i - 2] = pixels[i - 2];
+                newPixels[i - 1] = pixels[i - 1];
+                newPixels[i] = pixels[i];
+            } else {
+                newPixels[i - 3] = 0;
+                newPixels[i - 2] = 0;
+                newPixels[i - 1] = 0;
+                newPixels[i] = 0;
+            }
+        }
+
+        // gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, newPixels);
+        // if (isPowerOf2(width) && isPowerOf2(height)) {
+        //     gl.generateMipmap(gl.TEXTURE_2D);
+        // } else {
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        //     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        // }
+
+        oldPixels = pixels;
+    } else {
+        oldPixels = pixels;
+    }
+    // console.log(pixels.filter((v) => v !== 0 && v !== 255));
 };
 
 
@@ -175,6 +243,9 @@ function render() {
         } catch (e) {
         }
 
+        if (!waitImageUpload) {
+            updateImagePixeles();
+        }
         ++count;
     } else {
         h = getDefaultH();
@@ -183,46 +254,9 @@ function render() {
         count = 0;
     }
 
-    if (count === 0) {
-        const pixels = new Uint8Array(pixelsLength);
-        gl = canvas.getContext("webgl");
-        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-        if (oldPixels) {
-            const newPixels = new Uint8Array(pixels);
-
-            // console.log(oldPixels, pixels);
-
-            for (let i = 3; i < pixelsLength; i += 4) {
-                if (arePixelsDifferent(
-                    pixels[i - 3], pixels[i - 2], pixels[i - 1],
-                    oldPixels[i - 3], oldPixels[i - 2], oldPixels[i - 1]
-                )) {
-                    newPixels[i - 3] = 255;
-                    newPixels[i - 2] = 255;
-                    newPixels[i - 1] = pixels[i - 1];
-                    newPixels[i] = pixels[i];
-                }
-            }
-
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, newPixels);
-
-            gl.generateMipmap( gl.TEXTURE_2D );
-
-            oldPixels = pixels;
-        } else {
-            oldPixels = pixels;
-        }
-        // gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, newPixels);
-        // console.log(pixels.filter((v) => v !== 0 && v !== 255));
-        // console.log(newPixels, pixels);
-    }
-
     renderer.render(scene, camera);
 }
 
 init();
 animate();
-image.crossOrigin = "anonymous";
-image.src = 'http://image.sendsay.ru/image/x_1480704971639731/test1/mipt.jpg';
 

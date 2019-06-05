@@ -11,3 +11,7 @@ img {
 	top: 0;
 	z-index: 1;
 }
+
+canvas {
+	padding-left: 150px;
+}

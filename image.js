@@ -152,4 +152,5 @@ let imageLoaded = (ev) => {
 
 im = new Image();
 im.onload = imageLoaded;
-im.src = 'img/mipt2.jpg';
+im.crossOrigin = 'anonymous';
+im.src = 'http://image.sendsay.ru/image/x_1480704971639731/test1/mipt2.jpg';
