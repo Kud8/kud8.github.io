@@ -19,24 +19,35 @@
 
 	<script id="vertex_shader" type="x-shader/x-vertex">
 		varying vec3 vNormal;
+		varying vec2 vUv;
+
 		void main() {
 			vNormal = normal;
+			vUv = uv;
+
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 		}
 	</script>
 
 	<script id="fragment_shader" type="x-shader/x-fragment">
-		uniform sampler2D texture;
+		uniform sampler2D texture1;
+		uniform sampler2D texture2;
+
 		varying vec3 vNormal;
+		varying vec2 vUv;
+
 		void main() {
-			vec2 uv = normalize( vNormal ).xy * 0.5 + 0.5;
-			vec3 color = texture2D( texture, uv ).rgb;
-			if ( vNormal.z < - 0.85 ) color = vec3( 0.777, 0.74, 0.74 ); // back of eye
-			gl_FragColor = vec4( color, 1.0 );
+			vec4 C1 = texture2D( texture1, vUv );
+			vec4 C2 = texture2D( texture2, vUv );
+			if (C2.a == 1.0) {
+				gl_FragColor = vec4( C2.rgb * C2.a, 1.0 );
+			} else {
+				gl_FragColor = vec4( C1.rgb * C1.a, 1.0 );
+			}
 		}
 	</script>
 
-	<script src="index.js"></script>
+	<script src="index2.js"></script>
 
 </body>
 </html>

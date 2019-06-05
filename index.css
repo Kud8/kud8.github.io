@@ -15,3 +15,7 @@ img {
 canvas {
 	padding-left: 150px;
 }
+
+canvas:last-of-type {
+	opacity: 0.5;
+}
