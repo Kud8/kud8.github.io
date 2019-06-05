@@ -72,33 +72,7 @@ const updateH = (newI, newJ) => {
     }
 };
 
-let waitImageUpload = true;
-
-function loadTexture(url) {
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-
-    const image = new Image();
-    image.onload = function() {
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
-            gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
-            gl.generateMipmap(gl.TEXTURE_2D);
-        } else {
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        }
-        waitImageUpload = false;
-    };
-
-    image.crossOrigin = 'anonymous';
-    image.src = url;
-
-    return texture;
-}
+let isImageUploaded = false;
 
 const init = () => {
     const imageOld = document.createElement('img');
@@ -115,7 +89,7 @@ const init = () => {
 
     scene = new THREE.Scene();
 
-    camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
+    camera = new THREE.PerspectiveCamera(30, 1, 1, 1000);
     camera.position.x = 0;
     camera.position.y = 0;
     camera.position.z = 150;
@@ -124,7 +98,13 @@ const init = () => {
     controls.minDistance = 75;
     controls.maxDistance = 200;
 
-    texture = loadTexture('http://image.sendsay.ru/image/x_1480704971639731/test1/canvas.png');
+    image = document.createElement('img');
+
+    texture = new THREE.Texture(image);
+    image.addEventListener('load', function () {
+        texture.needsUpdate = true;
+        isImageUploaded = true;
+    });
 
     var uniforms = {
         "texture": {type: "t", value: texture}
@@ -243,7 +223,7 @@ function render() {
         } catch (e) {
         }
 
-        if (!waitImageUpload) {
+        if (isImageUploaded) {
             updateImagePixeles();
         }
         ++count;
@@ -260,3 +240,5 @@ function render() {
 init();
 animate();
 
+image.crossOrigin = "anonymous";
+image.src = 'http://image.sendsay.ru/image/x_1480704971639731/test1/canvas.png';
