@@ -11,3 +11,11 @@ img {
 	top: 0;
 	z-index: 1;
 }
+
+canvas {
+	padding-left: 150px;
+}
+
+canvas:last-of-type {
+	opacity: 0.5;
+}
