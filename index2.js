@@ -1,13 +1,15 @@
 function randomInteger(min, max) {
-    var rand = min + Math.random() * (max + 1 - min);
-    rand = Math.floor(rand);
-    return rand;
+    const rand = min + Math.random() * (max + 1 - min);
+    return Math.floor(rand);
 }
 
-const WIDTH = 512;
-const HEIGHT = 512;
+const WIDTH = 1024;
+const HEIGHT = 1024;
 const PIXELS_LENGTH = WIDTH * HEIGHT * 4;
 const canvasDuplicates = 2;
+
+const IMAGE_OLD = 'http://image.sendsay.ru/image/x_1480704971639731/test1/1024.jpg';
+const IMAGE = 'http://image.sendsay.ru/image/x_1480704971639731/test1/canvas1024_2.png';
 
 let renderers = [];
 let scenes = [];
@@ -17,15 +19,8 @@ let textures = [];
 let materials = [];
 let isImageUploaded = [false, false];
 
-const filterTextureData = new Uint8Array(PIXELS_LENGTH * 4);
-const emptyTextureData = new Uint8Array(PIXELS_LENGTH * 4);
-
-for (let i = 1; i <= PIXELS_LENGTH; ++i) {
-    filterTextureData[i * 4 - 1] = 254; // with 255 all is black
-    filterTextureData[i * 4 - 2] = 0;
-    filterTextureData[i * 4 - 3] = 0;
-    filterTextureData[i * 4 - 4] = 0;
-}
+const filterTextureData = new Uint8Array(PIXELS_LENGTH);
+const emptyTextureData = new Uint8Array(PIXELS_LENGTH);
 
 let filterTexture = new THREE.DataTexture( filterTextureData, WIDTH, HEIGHT, THREE.RGBAFormat, THREE.UnsignedByteType );
 let emptyTexture = new THREE.DataTexture( emptyTextureData, WIDTH, HEIGHT, THREE.RGBAFormat, THREE.UnsignedByteType );
@@ -34,18 +29,17 @@ filterTexture.needsUpdate = true;
 emptyTexture.needsUpdate = true;
 
 const LAMBDA = 1;
-const L = 50;
+const L = 80;
 const EPS = 0.02;
-const CAMERA_STEP = 1;
+const CAMERA_STEP = 3;
 
 const moveFunctions = {
     getDefaultH: () => {
         const res = [];
         for (let i = 0; i < L; ++i) {
-            const row = [];
-            for (let i = 0; i < L; ++i) {
-                row.push(1);
-            }
+            const row = new Array(L);
+            row.fill(1);
+
             res.push(row);
         }
 
@@ -114,7 +108,7 @@ const moveFunctions = {
 
 const init = () => {
     const imageOld = document.createElement('img');
-    imageOld.src = 'http://image.sendsay.ru/image/x_1480704971639731/test1/mipt2.jpg';
+    imageOld.src = IMAGE_OLD;
     document.body.appendChild(imageOld);
 
     const vertexShader = document.getElementById('vertex_shader').textContent;
@@ -140,7 +134,7 @@ const init = () => {
             isImageUploaded[i] = true;
         });
         image.crossOrigin = "anonymous";
-        image.src = 'http://image.sendsay.ru/image/x_1480704971639731/test1/canvas.png';
+        image.src = IMAGE;
 
         materials.push(new THREE.ShaderMaterial({
             uniforms: {
@@ -155,7 +149,39 @@ const init = () => {
         mesh.needsUpdate = true;
         scenes[i].add(mesh);
     }
+};
 
+let oldPixels;
+const arePixelsDifferent = (r0, g0, b0, r1, g1, b1) => {
+
+    return Math.abs(r0 - r1) > 0
+        && Math.abs(g0 - g1) > 1
+        && Math.abs(b0 - b1) > 0;
+};
+const updateImagePixeles = () => {
+    const pixels = new Uint8Array(PIXELS_LENGTH);
+    gl[1].readPixels(0, 0, WIDTH, HEIGHT, gl[1].RGBA, gl[1].UNSIGNED_BYTE, pixels);
+
+    if (oldPixels) {
+        let isBlack = true;
+        for (let i = 3; i < PIXELS_LENGTH; i += 4) {
+            if (arePixelsDifferent(
+                pixels[i - 3], pixels[i - 2], pixels[i - 1],
+                oldPixels[i - 3], oldPixels[i - 2], oldPixels[i - 1]
+            )) {
+                filterTexture.image.data[i] = 0;
+                isBlack = false;
+            } else {
+                filterTexture.image.data[i] = 255;
+            }
+        }
+
+        filterTexture.needsUpdate = !isBlack;
+
+        oldPixels = pixels;
+    } else {
+        oldPixels = pixels;
+    }
 };
 
 const i_0 = Math.round(L / 2);
@@ -164,25 +190,19 @@ let h = moveFunctions.getDefaultH();
 let i = i_0;
 let j = j_0;
 
-let count = 1;
 const render = () => {
-    if (count < 100) {
-        try {
-            const {newI, newJ, id} = moveFunctions.getDirection(i, j);
-            i = newI;
-            j = newJ;
+    try {
+        const {newI, newJ, id} = moveFunctions.getDirection(i, j);
+        i = newI;
+        j = newJ;
 
-            moveFunctions.updateH(i, j);
-            moveFunctions.updateCameraPosition(id);
-        } catch (e) {
-        }
+        moveFunctions.updateH(i, j);
+        moveFunctions.updateCameraPosition(id);
+    } catch (e) {
+    }
 
-        ++count;
-    } else {
-        h = moveFunctions.getDefaultH();
-        i = i_0;
-        j = j_0;
-        count = 0;
+    if (isImageUploaded[0] && isImageUploaded[1]) {
+        updateImagePixeles();
     }
 
     for (let i = 0; i < canvasDuplicates; ++i) {

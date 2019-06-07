@@ -8,9 +8,11 @@
 <body>
 	<script>
 		var getContext = HTMLCanvasElement.prototype.getContext;
+
 		HTMLCanvasElement.prototype.getContext = function(){
 			if( arguments[ 1 ] ) arguments[ 1 ].preserveDrawingBuffer = true;
 			var context = getContext.apply( this, arguments );
+
 			return context;
 		}
 	</script>
@@ -18,11 +20,9 @@
 	<script src="libs/OrbitControls.js"></script>
 
 	<script id="vertex_shader" type="x-shader/x-vertex">
-		varying vec3 vNormal;
 		varying vec2 vUv;
 
 		void main() {
-			vNormal = normal;
 			vUv = uv;
 
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
@@ -33,17 +33,13 @@
 		uniform sampler2D texture1;
 		uniform sampler2D texture2;
 
-		varying vec3 vNormal;
 		varying vec2 vUv;
 
 		void main() {
 			vec4 C1 = texture2D( texture1, vUv );
 			vec4 C2 = texture2D( texture2, vUv );
-			if (C2.a == 1.0) {
-				gl_FragColor = vec4( C2.rgb * C2.a, 1.0 );
-			} else {
-				gl_FragColor = vec4( C1.rgb * C1.a, 1.0 );
-			}
+
+			gl_FragColor = vec4( C1.rgb * C1.a * (1.0 - C2.a) + C2.rgb * C2.a, 1.0 );
 		}
 	</script>
 
