@@ -153,4 +153,4 @@ let imageLoaded = (ev) => {
 im = new Image();
 im.onload = imageLoaded;
 im.crossOrigin = 'anonymous';
-im.src = 'http://image.sendsay.ru/image/x_1480704971639731/test1/1024.jpg';
+im.src = 'https://res.cloudinary.com/dzxpcldgh/image/upload/v1633621948/1024_voahi5.jpg';

@@ -76,7 +76,7 @@ let isImageUploaded = false;
 
 const init = () => {
     const imageOld = document.createElement('img');
-    imageOld.src = 'http://image.sendsay.ru/image/x_1480704971639731/test1/mipt2.jpg';
+    imageOld.src = 'https://res.cloudinary.com/dzxpcldgh/image/upload/v1633621974/mipt2_fdhq5w.jpg';
     document.body.appendChild(imageOld);
 
     renderer = new THREE.WebGLRenderer();
@@ -241,4 +241,4 @@ init();
 animate();
 
 image.crossOrigin = "anonymous";
-image.src = 'http://image.sendsay.ru/image/x_1480704971639731/test1/canvas.png';
+image.src = 'https://res.cloudinary.com/dzxpcldgh/image/upload/v1633621982/canvas_wbydqh.png';

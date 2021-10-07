@@ -8,8 +8,8 @@ const HEIGHT = 1024;
 const PIXELS_LENGTH = WIDTH * HEIGHT * 4;
 const canvasDuplicates = 2;
 
-const IMAGE_OLD = 'http://image.sendsay.ru/image/x_1480704971639731/test1/1024.jpg';
-const IMAGE = 'http://image.sendsay.ru/image/x_1480704971639731/test1/canvas1024_2.png';
+const IMAGE_OLD = 'https://res.cloudinary.com/dzxpcldgh/image/upload/v1633621948/1024_voahi5.jpg';
+const IMAGE = 'https://res.cloudinary.com/dzxpcldgh/image/upload/v1633622031/canvas1024_2_yzgfxb.png';
 
 let renderers = [];
 let scenes = [];
